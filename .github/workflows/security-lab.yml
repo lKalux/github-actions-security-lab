@@ -1,0 +1,24 @@
+name: Security Lab - Comment Trigger
+
+on:
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: read
+
+jobs:
+  inspect-comment:
+    if: ${{ github.event.issue.pull_request && contains(github.event.comment.body, '#tag') }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Inspect event
+        env:
+          COMMENT_AUTHOR: ${{ github.event.comment.user.login }}
+          AUTHOR_ASSOCIATION: ${{ github.event.comment.author_association }}
+        run: |
+          echo "Comentario #tag detectado"
+          echo "Autor: $COMMENT_AUTHOR"
+          echo "Relacion con el repositorio: $AUTHOR_ASSOCIATION"
+          echo "Workflow activado sin operaciones de escritura"
