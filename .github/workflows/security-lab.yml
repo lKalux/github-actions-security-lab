@@ -5,20 +5,31 @@ on:
     types: [created]
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
-  inspect-comment:
+  test-release:
     if: ${{ github.event.issue.pull_request && contains(github.event.comment.body, '#tag') }}
     runs-on: ubuntu-latest
 
     steps:
-      - name: Inspect event
+      - name: Test unauthorized release creation
         env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
           COMMENT_AUTHOR: ${{ github.event.comment.user.login }}
           AUTHOR_ASSOCIATION: ${{ github.event.comment.author_association }}
+          PR_NUMBER: ${{ github.event.issue.number }}
+          RUN_ID: ${{ github.run_id }}
         run: |
-          echo "Comentario #tag detectado"
           echo "Autor: $COMMENT_AUTHOR"
-          echo "Relacion con el repositorio: $AUTHOR_ASSOCIATION"
-          echo "Workflow activado sin operaciones de escritura"
+          echo "Asociacion: $AUTHOR_ASSOCIATION"
+
+          gh release create "security-lab-$RUN_ID" \
+            --title "Security Lab - Authorization Test" \
+            --notes "Prueba controlada desde PR #$PR_NUMBER por $COMMENT_AUTHOR" \
+            --prerelease \
+            --target main
+
+          echo "RELEASE_CREATED_BY=$COMMENT_AUTHOR"
+          echo "AUTHOR_ASSOCIATION=$AUTHOR_ASSOCIATION"
